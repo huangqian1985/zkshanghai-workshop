@@ -45,7 +45,7 @@ r = 2188824287183927522224640574525727508854836440041603434369820418657580849561
 ```
 pragma circom 2.1.4;
 
-template Num2Bites (nBits) {
+template Num2Bits (nBits) {
     signal input in;
     signal output b[nBits];
 
@@ -65,7 +65,7 @@ template Num2Bites (nBits) {
     }
 }
 
-component main = Num2Bites(5);
+component main = Num2Bits(5);
 
 /* INPUT = {
     "in": "10"
@@ -81,6 +81,27 @@ component main = Num2Bites(5);
 要求：如果`in`为零，`out`应为`1`。 如果`in`不为零，`out`应为`0`。 这个有点棘手！
 
 [解决方案](https://github.com/iden3/circomlib/blob/master/circuits/comparators.circom#L24)
+
+```
+pragma circom 2.1.4;
+
+template IsZero () {
+    signal input in;
+    
+    signal output out;
+
+    signal inv <-- in == 0 ? 0 : 1/in;
+
+    out <== -in * inv + 1;
+    in * out === 0;
+}
+
+component main = IsZero();
+
+/* INPUT = {
+    "in": "0"
+} */
+```
 
 ### 相等 IsEqual
 
