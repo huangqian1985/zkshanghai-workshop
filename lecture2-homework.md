@@ -114,6 +114,39 @@ component main = IsZero();
 
 [解决方案](https://github.com/iden3/circomlib/blob/master/circuits/comparators.circom#L37)
 
+```
+pragma circom 2.1.4;
+
+template IsZero () {
+    signal input in;
+    
+    signal output out;
+
+    signal inv <-- in == 0 ? 0 : 1/in;
+
+    out <== -in * inv + 1;
+    in * out === 0;
+}
+
+template IsEqual() {
+    signal input in[2];
+    signal output out;
+
+    component isZero = IsZero();
+
+    in[1] - in[0] ==> isZero.in;
+
+    isZero.out ==> out;
+}
+
+
+component main = IsEqual();
+
+/* INPUT = {
+    "in": ["1","1"]
+} */
+```
+
 ### 选择器 Selector
 
 - 参数：`nChoices`
