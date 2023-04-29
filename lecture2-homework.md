@@ -42,6 +42,36 @@ r = 2188824287183927522224640574525727508854836440041603434369820418657580849561
 
 [解决方案](https://github.com/iden3/circomlib/blob/master/circuits/bitify.circom#L25)
 
+```
+pragma circom 2.1.4;
+
+template Num2Bites (nBits) {
+    signal input in;
+    signal output b[nBits];
+
+
+    for (var i = 0; i < nBits; i++) {
+        b[i] <-- (in \ 2 ** i) % 2;
+    }
+
+    var acc = 0;
+    for (var i = 0; i < nBits; i++) {
+        acc += b[i] * 2**i;
+    }
+    acc === in;
+
+    for (var i = 0; i < nBits; i++) {
+        0 === b[i] * (1 - b[i]);
+    }
+}
+
+component main = Num2Bites(5);
+
+/* INPUT = {
+    "in": "10"
+} */
+```
+
 ### 判零 IsZero
 
 - 参数：无
