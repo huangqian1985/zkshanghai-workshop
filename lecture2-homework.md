@@ -157,6 +157,70 @@ component main = IsEqual();
 
 [解决方案](https://github.com/darkforest-eth/circuits/blob/master/perlin/QuinSelector.circom)
 
+```
+pragma circom 2.1.4;
+
+template IsZero () {
+    signal input in;
+    
+    signal output out;
+
+    signal inv <-- in == 0 ? 0 : 1/in;
+
+    out <== -in * inv + 1;
+    in * out === 0;
+}
+
+template IsEqual() {
+    signal input in[2];
+    signal output out;
+
+    component isZero = IsZero();
+
+    in[1] - in[0] ==> isZero.in;
+
+    isZero.out ==> out;
+}
+
+template CalcTotalSum (n) {
+    signal input in[n];
+    signal output out;
+    signal sum[n + 1];
+
+    sum[0] <== 0;
+    for (var i = 0; i < n; i++) {
+        sum[i + 1] <== in[i] + sum[i];
+    }
+    out <== sum[n];
+}
+
+template Selector (nChoices) {
+    signal input in[nChoices];
+    signal input index;
+    signal output out;
+    
+    component iseq[nChoices];
+    component sum = CalcTotalSum(nChoices);
+    for (var i = 0; i < nChoices; i++) {
+        iseq[i] = IsEqual();
+        iseq[i].in[0] <== i;
+        iseq[i].in[1] <== index;
+
+        sum.in[i] <== iseq[i].out * in[i]; 
+    }
+
+    out <== sum.out;
+}
+
+
+component main = Selector(5);
+
+/* INPUT = {
+    "in": ["1", "2", "3", "4", "5"],
+    "index": "4"
+} */
+```
+
 ### 判负 IsNegative
 
 注意：信号是模 p（Babyjubjub 素数）的残基，并且没有`负`数模 p 的自然概念。 但是，很明显，当我们将`p-1`视为`-1`时，模运算类似于整数运算。
