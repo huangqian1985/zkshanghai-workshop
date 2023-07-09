@@ -1,4 +1,4 @@
-# 第 3 课 练习
+# 第 3 课 练习 （本次作业难度太大, 所以大量参考了wenjin1997的作业）
 
 给定整数 $x, m$，如果 $x$ 在模 $m$ 下是二次剩余，即存在整数 $s$，使得 $s^{2} \equiv x(\bmod m)$，则记作 $QR(m, x)=1$ ; 如果 $x$ 在模 $m$ 下不是二次剩余，则记作 $QR(m, x)=0$。
 
@@ -75,6 +75,12 @@ You are asked to check:
 - (b) **Soundness**: if $QR(m, x)=1$, then no matter what the Prover does (the Prover does not have to follow the protocol), the Verifer rejects with probability $\geq 1 / 2$
 
 </details>
+
+### 答：
+
+(1) **完备性**：如果$b=0$，$y=s^2x$，Prover是诚实的，计算$QR(m,y)=QR(m,s^2x)$，由于$QR(m,x)=0$，则一定有$QR(m,s^2x)=0$，因此Verifier接收到的就是0，验证$QR(m,y)=0=b$，验证者总是接受。
+
+(2) **可靠性**：如果$QR(m,x)=1$，则$x$是模$m$的二次剩余。如果Verifier选择$b=0$，发送$y = s^2x$，$QR(m,y)=QR(m,s^2x)=1 \neq b$；如果Verifier选择$b=1$，发送$y=s^2$，$QR(m,y)=QR(m,s^2)=1=b$。对于Prover来说，如果诚实计算$QR(m,y)$，只会有$1/2$的概率通过验证，如果不诚实计算$QR(m,y)$，不会有超过$1/2$概率通过验证。最终，Verifier都会以超过$1/2$的概率拒绝。
 
 ## 二次剩余 Quadratic residue
 
@@ -177,6 +183,36 @@ You are asked to check:
 
 </details>
 
+### 答：
+
+(a)**完备性**：也就是$QR(m,x)=1$。Verifier选择$b$有两种情况：
+
+(1)$b=0$，此时Prover计算的$u=t$，将$u$发送给Verifier进行验证，等式左边$y = xt^2 \mod m$，等式右边$u^2 x \mod m = t^2x \mod m$，等式两边相等，验证通过。
+
+(2)$b=1$，此时Prover计算$u = st$，将$u$发送给Verifier进行验证，等式左边$y = xt^2 \mod m$，等式右边$u^2 \mod m = s^2t^2 \mod m$，由于$QR(m,x)=1$，因此$s^2 = x \mod m$，从而等式左右两边相等，$y = u^2 \mod m$，验证通过。
+
+(b)**可靠性**：如果$QR(m,x)=0$。
+
+(1)$b=0$，Prover选择$u=t$会通过验证，因为$y=xt^2 = u^2x \mod m$。
+
+(2)$b=1$，Verifier会验证$y = xt^2 = u^2 \mod m$。由于$QR(m,x)=0$，不会存在一个数$s$，使得$s^2 = x \mod m$，将Verifier验证的等式变形为$x = (\frac{u}{t})^2 \mod m$，由于不存在这样的数，因此这里Verifier会验证失败，当然Prover不知道有效的$s$使得$s = \frac{u}{t}$，Verifier会验证失败。
+
+综上，Verifier会以超过$1/2$的概率拒绝。
+
+(b*)**知识可靠性**：Verifier首先选择随机数$b=0$，接收到Prover发送的第一个值$u_1 = t$，接着Verifier时光倒流回到上一步，选择随机数$b=1$，这里$Prover$是无感知的，还是会发送同一个$t$，因此Verifier接收到Prover发送的第二个值$u_2 = st$，此时Verifier将这两个数做除法，$\frac{u_2}{u_1} = \frac{st}{t}=s$，就提取出秘密$s$。
+
+(c)**零知识**：现在我们设计一个模拟器，模拟器的视角和真实交互视角一样，但是模拟器中不知道秘密$s$。
+
+Step1: 随机选择一个随机数$b$。
+
+Step2: 选择一个随机数$u \in \mathbb{Z}_{m}$.
+
+Step3: 根据$b$的值，计算$y$，如果$b=0$，$y=u^2x \mod m$，如果$b=1$，$y = u^2 \mod m$。
+
+Step4: 接着我们时光倒流，回到和Verifier交互的第一步，发送$y$，如果Verifier恰好也是我们在Step1中选择的随机数$b$，那么就继续下面的交互，最终会通过验证。如果Verifier选择的随机数和我们在Step1中选择的随机数不同，我们转到Step1，重新随机选择一个数。这一过程中由于$b$就两个数，因此期望2轮会和Verifier选择的随机数相同，通过验证。
+
+这样的一个模拟器和知道秘密的Prover与Verifier交互，其视角在Verifier看来都是一样的，因此也就证明了零知识。
+
 ## 双线性自映射意味着DDH的失效 Self-pairing implies failure of DDH
 
 设 $\mathbb{G}$ 和 $\mathbb{G}_{T}$ 是相同素数阶 $q$ 的阿贝尔群（以加法写出）。 设 $g \in \mathbb{G}$ 为生成元。 假设我们有一个可有效计算的非退化双线性对
@@ -207,6 +243,10 @@ Hint: compute the pairing against $g$.
 This exercise shows that the Decisional Diffie-Hellman (DDH) assumption is false for groups with self-pairing.
 
 </details>
+
+### 答：
+
+判断等式$\alpha \beta g = y$是否成立，只需要计算$e(\alpha g, \beta g) = e(y, g)$是否成立。在等式$\alpha \beta g = y$两端同时计算与$g$的映射，得到$e(\alpha \beta g, g) = e(\alpha g, \beta g) = e(y, g)$。
 
 ## BLS 签名聚合 BLS signature aggregation
 
@@ -279,3 +319,9 @@ Note. The above signature aggregation scheme is not secure due to a _rogue publi
 For more on BLS signature aggregation, see <https://crypto.stanford.edu/~dabo/pubs/papers/BLSmultisig.html>
 
 </details>
+
+### 答：
+
+验证算法始终能接受正确的签名。因为在$Verifiy(pk,m,\sigma)$这一步，等式左端$e(g_0,\sigma) = e(g_0, \alpha H(m))$，等式右端$e(pk,H(m)) = e(\alpha g_0, H(m))= e(g_0,\alpha H(m))$，等式两端相等，会始终通过算法验证。
+
+选择消息攻击下的存在性不可伪造性：攻击者想要伪造签名$\sigma \leftarrow \alpha H(m)$，首先在多项式时间计算出$\alpha$是困难的，因为知道公钥和生成员$g_0$在多项式时间内计算出私钥是离散对数困难问题。其次，攻击者想要任意选择消息$m$使得$H(m)$等于一个特定的值，这在多项式时间内也无法做到，因为哈希函数具有抗碰撞性，无法在多项式时间内找到一个$m$，使得$H(m)$等于一个事先给定的值。
